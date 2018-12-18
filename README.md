@@ -1,0 +1,1 @@
+# boy-springboot-ssi-seed

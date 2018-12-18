@@ -2,10 +2,10 @@
 ====
 
 ## 项目开发中涉及到相关主要的技术框架
-项目管理:Maven
-版本管理:Git
-中间件:druid
-框架:spring boot,mybatis,spring cloud feign
+     * 项目管理:Maven
+     * 版本管理:Git
+     * 中间件:druid
+     * 框架:spring boot,mybatis,spring cloud feign
 
 
 ## 项目介绍

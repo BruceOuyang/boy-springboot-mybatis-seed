@@ -17,6 +17,9 @@ import ${item};
  */
 @Data
 public class ${table.beanName}DTO extends BaseDTO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
 <#list table.propertyList as col>
  <#if col.columnComment?has_content>
   /**

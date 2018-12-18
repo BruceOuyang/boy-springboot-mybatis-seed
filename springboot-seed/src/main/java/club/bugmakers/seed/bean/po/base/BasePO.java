@@ -13,6 +13,7 @@ import java.util.Date;
 @Data
 public class BasePO implements java.io.Serializable {
 
+    private static final long serialVersionUID = 8426443607739626644L;
     /**
      * 主键
      */

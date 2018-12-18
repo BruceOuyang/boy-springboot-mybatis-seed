@@ -11,6 +11,7 @@ import lombok.Data;
 @Data
 public class BaseBO implements java.io.Serializable {
 
+    private static final long serialVersionUID = 4795998576905298649L;
     /**
      * 主键
      */

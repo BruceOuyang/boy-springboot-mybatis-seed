@@ -13,6 +13,7 @@ import java.util.Date;
 @Data
 public class BaseDTO implements java.io.Serializable {
 
+    private static final long serialVersionUID = 836651607659349464L;
     /**
      * 主键
      */

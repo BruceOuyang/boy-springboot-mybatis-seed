@@ -1,9 +1,8 @@
 package club.bugmakers.seed.bean.dto.base;
 
 
-import cn.victorplus.fps.enums.base.RespStatus;
+import club.bugmakers.seed.enums.base.RespStatus;
 import lombok.Data;
-import lombok.ToString;
 
 /**
  * 相应信息 DTO

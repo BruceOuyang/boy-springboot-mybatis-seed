@@ -4,6 +4,8 @@ import ${cfg.baseBoPackage}.BaseBO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
+
 <#if table.importBeanList??>
  <#list table.importBeanList as item>
 import ${item};

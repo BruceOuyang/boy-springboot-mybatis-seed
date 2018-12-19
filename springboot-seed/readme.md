@@ -71,3 +71,6 @@
      * @date   ${DATE}.
      */
     修改模板的方法  File --> Settings --> Editor  --> File and Code Templates 选中class 再选中includes进行修改
+    
+### 项目启动后，访问 swagger 地址
+[http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)

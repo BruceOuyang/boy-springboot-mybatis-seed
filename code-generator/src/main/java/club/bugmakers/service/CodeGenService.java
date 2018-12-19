@@ -2,6 +2,7 @@ package club.bugmakers.service;
 
 import club.bugmakers.bean.GenConf;
 import club.bugmakers.bean.Table;
+import club.bugmakers.bean.TemplatePath;
 import club.bugmakers.util.FreemarkerUtil;
 import club.bugmakers.util.StrUtil;
 import com.google.common.collect.Maps;
@@ -16,12 +17,6 @@ import java.io.FileWriter;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 代码生成服务
- * @Author: Bruce
- * @Date: 2018/12/14 18:46
- * @Version 1.0
- */
 @Service
 public class CodeGenService {
 	private static final Logger logger = LoggerFactory.getLogger(CodeGenService.class);
@@ -33,31 +28,42 @@ public class CodeGenService {
 	public void genCode() throws Exception {
 		logger.info("gen code,genConf={}", genConf);
 
-		if (StrUtil.isBlank(genConf.getOutputDir())) {
+		if (StrUtil.isBlank(genConf.getOutputDirMgt())) {
+			logger.error("output dir can NOT be null");
+			return;
+		}
+
+		if (StrUtil.isBlank(genConf.getOutputDirWeb())) {
 			logger.error("output dir can NOT be null");
 			return;
 		}
 
 		// 检查输出文件夹
-		File outputDir = new File(genConf.getOutputDir());
-		if (!outputDir.exists()) {
-			outputDir.mkdirs();
-		} else {
-			outputDir.delete();
-			outputDir.mkdirs();
-		}
+		initOutputDir(genConf.getOutputDirMgt());
+		initOutputDir(genConf.getOutputDirWeb());
+
+		String sep = File.separator;
+
+		String javaCodePath = new StringBuilder(genConf.getOutputDirMgt()).append(javaCodeRoot()).toString();
+		String xmlCodePath = new StringBuilder(genConf.getOutputDirMgt()).append(xmlCodeRoot()).toString();
+		String vueCodePath = new StringBuilder(genConf.getOutputDirWeb()).append(vueCodeRoot()).toString();
+
+		String bizPath = new StringBuilder(sep).append(genConf.getTableInclude()).append(sep).toString();
 
 		// 初始化输出文件目录
-		File poFile = new File(genConf.getOutputDir() + "/po");
-		File boFile = new File(genConf.getOutputDir() + "/bo");
-		File dtoFile = new File(genConf.getOutputDir() + "/dto");
+		File poFile = new File(new StringBuilder(javaCodePath).append(sep).append(toPath(genConf.getBeanPoPackage())).toString());
+		File boFile = new File(new StringBuilder(javaCodePath).append(sep).append(toPath(genConf.getBeanBoPackage())).toString());
+		File dtoFile = new File(new StringBuilder(javaCodePath).append(sep).append(toPath(genConf.getBeanDtoPackage())).toString());
 
-		File mapperFile = new File(genConf.getOutputDir() + "/mapper");
-		File serviceFile = new File(genConf.getOutputDir() + "/service");
-		File controllerFile = new File(genConf.getOutputDir() + "/controller");
+		File mapperFile = new File(new StringBuilder(javaCodePath).append(sep).append(toPath(genConf.getBeanMapperPackage())).toString());
+		File serviceFile = new File(new StringBuilder(javaCodePath).append(sep).append(toPath(genConf.getBeanServicePackage())).toString());
+		File controllerFile = new File(new StringBuilder(javaCodePath).append(sep).append(toPath(genConf.getBeanControllerPackage())).toString());
 
-		File xmlFile = new File(genConf.getOutputDir() + "/xml");
-		File vueFile = new File(genConf.getOutputDir() + "/vue");
+		File xmlFile = new File(xmlCodePath.toString());
+
+		File vueBeanFile = new File(new StringBuilder(vueCodePath).append("src").append(sep).append("pages").append(bizPath).toString());
+		File vueMockFile = new File(new StringBuilder(vueCodePath).append("mock").toString());
+		File vueRouterFile = new File(new StringBuilder(vueCodePath).append("src").append(sep).append("router").toString());
 
 		poFile.mkdirs();
 		boFile.mkdirs();
@@ -68,68 +74,102 @@ public class CodeGenService {
 		controllerFile.mkdirs();
 
 		xmlFile.mkdirs();
-		vueFile.mkdirs();
+
+		vueBeanFile.mkdirs();
+		vueMockFile.mkdirs();
+		vueRouterFile.mkdirs();
 
 		// 获取所有表
 		List<Table> tableList = tableService.getTableInfoList();
 
 		for (Table table : tableList) {
 
-			logger.info("gen code for table,tableName={}", table.getTableName());
+			logger.debug("gen code for table,tableName={}", table.getTableName());
 
-			Map<String, Object> rootMap = Maps.newHashMap();
-			rootMap.put("table", table);
-			rootMap.put("cfg", genConf);
+			// 数据
+			Map<String, Object> data = Maps.newHashMap();
+			data.put("table", table);
+			data.put("cfg", genConf);
 
-			// 将数据刷入模板，生成目标代码
-            try(
-				FileWriter poWriter = new FileWriter(poFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "PO.java");
-				FileWriter boPageWriter = new FileWriter(boFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "BoPage.java");
-				FileWriter boWriter = new FileWriter(boFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "BO.java");
-				FileWriter dtoWriter = new FileWriter(dtoFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "DTO.java");
-				FileWriter mapperWriter = new FileWriter(mapperFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Mapper.java");
-				FileWriter serviceWriter = new FileWriter(serviceFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Service.java");
-				FileWriter controllerWriter = new FileWriter(controllerFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Controller.java");
-				FileWriter xmlWriter = new FileWriter(xmlFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Mapper.xml");
-				FileWriter vueBeanWriter = new FileWriter(vueFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + ".vue");
-				FileWriter vueMockWriter = new FileWriter(vueFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Mock.json");
-				FileWriter vueRouterWriter = new FileWriter(vueFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Router.js");
-            ) {
-				// 获取模板
-				File poTemplate = ResourceUtils.getFile("classpath:templates/class_bean_po.ftl");
-				File boPageTemplate = ResourceUtils.getFile("classpath:templates/class_bean_bo_page.ftl");
-				File boTemplate = ResourceUtils.getFile("classpath:templates/class_bean_bo.ftl");
-				File dtoTemplate = ResourceUtils.getFile("classpath:templates/class_bean_dto.ftl");
-				File mapperTemplate = ResourceUtils.getFile("classpath:templates/class_mapper.ftl");
-				File serviceTemplate = ResourceUtils.getFile("classpath:templates/class_service.ftl");
-				File controllerTemplate = ResourceUtils.getFile("classpath:templates/class_controller.ftl");
-				File xmlTemplate = ResourceUtils.getFile("classpath:templates/xml_mapper.ftl");
-				File vueBeanTemplate = ResourceUtils.getFile("classpath:templates/vue_bean.ftl");
-				File vueMockTemplate = ResourceUtils.getFile("classpath:templates/vue_mock_js.ftl");
-				File vueRouterTemplate = ResourceUtils.getFile("classpath:templates/vue_router_js.ftl");
+			// 代码输出路径
+			StringBuilder poPath = new StringBuilder(poFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("PO.java");
+			StringBuilder boPagePath = new StringBuilder(boFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("BoPage.java");
+			StringBuilder boPath = new StringBuilder(boFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("BO.java");
+			StringBuilder dtoPath = new StringBuilder(dtoFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("DTO.java");
+			StringBuilder mapperPath = new StringBuilder(mapperFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("Mapper.java");
+			StringBuilder servicePath = new StringBuilder(serviceFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("Service.java");
+			StringBuilder controllerPath = new StringBuilder(controllerFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("Controller.java");
 
-				// 数据刷入模板
-                FreemarkerUtil.flushData(poTemplate.getAbsolutePath(), poWriter, rootMap);
-                FreemarkerUtil.flushData(boPageTemplate.getAbsolutePath(), boPageWriter, rootMap);
-                FreemarkerUtil.flushData(boTemplate.getAbsolutePath(), boWriter, rootMap);
-                FreemarkerUtil.flushData(dtoTemplate.getAbsolutePath(), dtoWriter, rootMap);
-                FreemarkerUtil.flushData(mapperTemplate.getAbsolutePath(), mapperWriter, rootMap);
-                FreemarkerUtil.flushData(serviceTemplate.getAbsolutePath(), serviceWriter, rootMap);
-                FreemarkerUtil.flushData(controllerTemplate.getAbsolutePath(), controllerWriter, rootMap);
-                FreemarkerUtil.flushData(xmlTemplate.getAbsolutePath(), xmlWriter, rootMap);
-				FreemarkerUtil.flushData(vueBeanTemplate.getAbsolutePath(), vueBeanWriter, rootMap);
-				FreemarkerUtil.flushData(vueMockTemplate.getAbsolutePath(), vueMockWriter, rootMap);
-				FreemarkerUtil.flushData(vueRouterTemplate.getAbsolutePath(), vueRouterWriter, rootMap);
+			StringBuilder xmlPath = new StringBuilder(xmlFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("Mapper.xml");
 
-				logger.info("import " + table.getBeanName() + "Router from './" + table.getBeanName() + "Router'");
-            }
+			StringBuilder vueBeanPath = new StringBuilder(vueBeanFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append(".vue");
+			StringBuilder vueMockPath = new StringBuilder(vueMockFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("Mock.json");
+			StringBuilder vueRouterPath = new StringBuilder(vueRouterFile.getAbsolutePath()).append(sep).append(table.getBeanName()).append("Router.js");
+
+			// 生成代码
+			genCode(poPath, TemplatePath.CLASS_PO, data);
+			genCode(boPagePath, TemplatePath.CLASS_BO_PAGE, data);
+			genCode(boPath, TemplatePath.CLASS_BO, data);
+			genCode(dtoPath, TemplatePath.CLASS_DTO, data);
+			genCode(mapperPath, TemplatePath.CLASS_MAPPER, data);
+			genCode(servicePath, TemplatePath.CLASS_SERVICE, data);
+			genCode(controllerPath, TemplatePath.CLASS_CONTROLLER, data);
+
+			genCode(xmlPath, TemplatePath.XML_MAPPER, data);
+
+			genCode(vueBeanPath, TemplatePath.VUE_BEAN, data);
+			genCode(vueMockPath, TemplatePath.VUE_MOCK, data);
+			genCode(vueRouterPath, TemplatePath.VUE_ROUTER, data);
+
+			logger.info("import {}Router from './{}Router'", table.getBeanName(), table.getBeanName());
+
 		}
+		
 		dumpTableExcel(tableList);
+		
+	}
+
+	private void initOutputDir(String outputDirPath) {
+		File outputDir = new File(outputDirPath);
+		if (!outputDir.exists()) {
+			outputDir.mkdirs();
+		} else {
+			outputDir.deleteOnExit();
+			outputDir.mkdirs();
+		}
+	}
+
+	private String javaCodeRoot() {
+		return toPath(new StringBuilder(".").append(genConf.getProjectNameMgt()).append(".src.main.java.").toString());
+	}
+
+	private String xmlCodeRoot() {
+		return toPath(new StringBuilder(".").append(genConf.getProjectNameMgt()).append(".src.main.resources.mapper.").toString());
+	}
+
+	private String vueCodeRoot() {
+		return toPath(new StringBuilder(".").append(genConf.getProjectNameWeb()).append(".").toString());
+	}
+
+	private void genCode(StringBuilder codeOutputPath, String codeTemplatePath, Map<String, Object> data) throws Exception {
+		try(
+			FileWriter writer = new FileWriter(codeOutputPath.toString());
+		){
+			// 获取模板
+			File template = ResourceUtils.getFile(codeTemplatePath);
+			// 数据刷入模板
+			FreemarkerUtil.flushData(template.getAbsolutePath(), writer, data);
+		}
+	}
+
+	private String toPath(String pkgPath) {
+		return pkgPath.replace(".", File.separator);
 	}
 
 	private void dumpTableExcel(List<Table> tableList){
-		System.out.println("备份数据到 excel 表格.  (略)");
-		System.out.println("代码已生成！目录为：" + genConf.getOutputDir());
+		logger.info("共生成 {} 个模块", tableList.size());
+		logger.info("备份数据到 excel 表格.  (略)");
+		logger.info("代码已生成！");
 	}
 
 }

@@ -4,24 +4,27 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/**
- * 配置文件类
- * @Author: Bruce
- * @Date: 2018/12/14 18:46
- * @Version 1.0
- */
 @Component
 @Data
 public class GenConf extends BaseEntity {
 
-    @Value("${output.dir}")
-    private String outputDir;
+    @Value("${output.dir.mgt}")
+    private String outputDirMgt;
+
+    @Value("${output.dir.web}")
+    private String outputDirWeb;
 
     @Value("${table.include}")
     private String tableInclude;
 
     @Value("${table.ignored}")
     private String tableIgnored;
+
+    @Value("${project.name.mgt}")
+    private String projectNameMgt;
+
+    @Value("${project.name.web}")
+    private String projectNameWeb;
 
     @Value("${base.bo.package}")
     private String baseBoPackage;

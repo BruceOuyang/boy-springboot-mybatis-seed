@@ -57,6 +57,7 @@ public class CodeGenService {
 		File controllerFile = new File(genConf.getOutputDir() + "/controller");
 
 		File xmlFile = new File(genConf.getOutputDir() + "/xml");
+		File vueFile = new File(genConf.getOutputDir() + "/vue");
 
 		poFile.mkdirs();
 		boFile.mkdirs();
@@ -67,6 +68,7 @@ public class CodeGenService {
 		controllerFile.mkdirs();
 
 		xmlFile.mkdirs();
+		vueFile.mkdirs();
 
 		// 获取所有表
 		List<Table> tableList = tableService.getTableInfoList();
@@ -81,24 +83,30 @@ public class CodeGenService {
 
 			// 将数据刷入模板，生成目标代码
             try(
-				FileWriter poWriter = new FileWriter(poFile.getAbsolutePath() + "/" + table.getBeanName() + "PO.java");
-				FileWriter boPageWriter = new FileWriter(boFile.getAbsolutePath() + "/" + table.getBeanName() + "BoPage.java");
-				FileWriter boWriter = new FileWriter(boFile.getAbsolutePath() + "/" + table.getBeanName() + "BO.java");
-				FileWriter dtoWriter = new FileWriter(dtoFile.getAbsolutePath() + "/" + table.getBeanName() + "DTO.java");
-				FileWriter mapperWriter = new FileWriter(mapperFile.getAbsolutePath() + "/" + table.getBeanName() + "Mapper.java");
-				FileWriter serviceWriter = new FileWriter(serviceFile.getAbsolutePath() + "/" + table.getBeanName() + "Service.java");
-				FileWriter controllerWriter = new FileWriter(controllerFile.getAbsolutePath() + "/" + table.getBeanName() + "Controller.java");
-				FileWriter xmlWriter = new FileWriter(xmlFile.getAbsolutePath() + "/" + table.getBeanName() + "Mapper.xml");
+				FileWriter poWriter = new FileWriter(poFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "PO.java");
+				FileWriter boPageWriter = new FileWriter(boFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "BoPage.java");
+				FileWriter boWriter = new FileWriter(boFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "BO.java");
+				FileWriter dtoWriter = new FileWriter(dtoFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "DTO.java");
+				FileWriter mapperWriter = new FileWriter(mapperFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Mapper.java");
+				FileWriter serviceWriter = new FileWriter(serviceFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Service.java");
+				FileWriter controllerWriter = new FileWriter(controllerFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Controller.java");
+				FileWriter xmlWriter = new FileWriter(xmlFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Mapper.xml");
+				FileWriter vueBeanWriter = new FileWriter(vueFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + ".vue");
+				FileWriter vueMockWriter = new FileWriter(vueFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Mock.json");
+				FileWriter vueRouterWriter = new FileWriter(vueFile.getAbsolutePath() + File.separatorChar + table.getBeanName() + "Router.js");
             ) {
 				// 获取模板
-				File poTemplate = ResourceUtils.getFile("classpath:templates/ssi/class_bean_po.ftl");
-				File boPageTemplate = ResourceUtils.getFile("classpath:templates/ssi/class_bean_bo_page.ftl");
-				File boTemplate = ResourceUtils.getFile("classpath:templates/ssi/class_bean_bo.ftl");
-				File dtoTemplate = ResourceUtils.getFile("classpath:templates/ssi/class_bean_dto.ftl");
-				File mapperTemplate = ResourceUtils.getFile("classpath:templates/ssi/class_mapper.ftl");
-				File serviceTemplate = ResourceUtils.getFile("classpath:templates/ssi/class_service.ftl");
-				File controllerTemplate = ResourceUtils.getFile("classpath:templates/ssi/class_controller.ftl");
-				File xmlTemplate = ResourceUtils.getFile("classpath:templates/ssi/xml_mapper.ftl");
+				File poTemplate = ResourceUtils.getFile("classpath:templates/class_bean_po.ftl");
+				File boPageTemplate = ResourceUtils.getFile("classpath:templates/class_bean_bo_page.ftl");
+				File boTemplate = ResourceUtils.getFile("classpath:templates/class_bean_bo.ftl");
+				File dtoTemplate = ResourceUtils.getFile("classpath:templates/class_bean_dto.ftl");
+				File mapperTemplate = ResourceUtils.getFile("classpath:templates/class_mapper.ftl");
+				File serviceTemplate = ResourceUtils.getFile("classpath:templates/class_service.ftl");
+				File controllerTemplate = ResourceUtils.getFile("classpath:templates/class_controller.ftl");
+				File xmlTemplate = ResourceUtils.getFile("classpath:templates/xml_mapper.ftl");
+				File vueBeanTemplate = ResourceUtils.getFile("classpath:templates/vue_bean.ftl");
+				File vueMockTemplate = ResourceUtils.getFile("classpath:templates/vue_mock_js.ftl");
+				File vueRouterTemplate = ResourceUtils.getFile("classpath:templates/vue_router_js.ftl");
 
 				// 数据刷入模板
                 FreemarkerUtil.flushData(poTemplate.getAbsolutePath(), poWriter, rootMap);
@@ -109,6 +117,11 @@ public class CodeGenService {
                 FreemarkerUtil.flushData(serviceTemplate.getAbsolutePath(), serviceWriter, rootMap);
                 FreemarkerUtil.flushData(controllerTemplate.getAbsolutePath(), controllerWriter, rootMap);
                 FreemarkerUtil.flushData(xmlTemplate.getAbsolutePath(), xmlWriter, rootMap);
+				FreemarkerUtil.flushData(vueBeanTemplate.getAbsolutePath(), vueBeanWriter, rootMap);
+				FreemarkerUtil.flushData(vueMockTemplate.getAbsolutePath(), vueMockWriter, rootMap);
+				FreemarkerUtil.flushData(vueRouterTemplate.getAbsolutePath(), vueRouterWriter, rootMap);
+
+				logger.info("import " + table.getBeanName() + "Router from './" + table.getBeanName() + "Router'");
             }
 		}
 		dumpTableExcel(tableList);

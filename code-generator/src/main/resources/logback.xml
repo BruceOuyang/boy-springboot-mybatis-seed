@@ -36,7 +36,7 @@
 		</filter> 
 	</appender>
 
-	<logger name="cn.victorplus" level="DEBUG" />
+	<logger name="cn.victorplus" level="INFO" />
 	<logger name="org.springframework" level="WARN"/>
 
 	<root level="INFO">

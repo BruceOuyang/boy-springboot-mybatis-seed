@@ -13,20 +13,17 @@ import ${item};
 
 /**
  * ${table.tableComment}
- * @author BOY_Code_Generator
+ * @author Code_Generator
  * @date ${.now?string("yyyy-MM-dd HH:mm:ss")}
  */
 @Data
 public class ${table.beanName}PO extends BasePO implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
 <#list table.propertyList as col>
   <#if col.columnComment?has_content>
-  /**
-   * ${col.columnComment}
-   */
+    /**
+    * ${col.columnComment}
+    */
   </#if>
-  private ${col.propertyType} ${col.propertyName};
+    private ${col.propertyType} ${col.propertyName};
 </#list>
 }

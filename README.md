@@ -7,4 +7,4 @@ progress: 100%
 progress: 100%  
 
 ## vue-seed
-progress: 0%
+progress: 100%

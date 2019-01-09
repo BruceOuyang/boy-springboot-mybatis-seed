@@ -1,0 +1,36 @@
+// 自行补充测试数据
+{
+  "/UserInfo/queryList":{
+    "data":{
+      "currentResult":0,
+      "firstPage":true,
+      "firstResult":0,
+      "lastPage":true,
+      "list":[{
+        "name": "0",
+        "ename": "0",
+        "remark": "0",
+      }],
+      "nextPage":1,
+      "pageNo":1,
+      "pageSize":100,
+      "prePage":1,
+      "totalCount":10,
+      "totalPage":1
+    },
+    "msg":"",
+    "status":0
+  },
+  "/UserInfo/add":{"data":null,"msg":"","status":0},
+  "/UserInfo/update":{"data":null,"msg":"","status":0},
+  "/UserInfo/remove":{"data":null,"msg":"","status":0},
+  "/UserInfo/get":{
+    "data":{
+        "name": "0",
+        "ename": "0",
+        "remark": "0",
+    },
+    "msg":"",
+    "status":0
+  },
+}

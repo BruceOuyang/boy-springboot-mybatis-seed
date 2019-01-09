@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="club.bugmakers.seed.mapper.user.UserInfoMapper">
+	<!--查询字段-->
+	<sql id="columns">
+	    a.id,
+	    a.name,
+	    a.ename,
+	    a.remark,
+	    a.version,
+	    a.create_dt,
+	    a.create_by,
+	    a.update_dt,
+	    a.update_by,
+	    a.is_delete
+	</sql>
+	
+	<!--查询结果集-->
+	<resultMap id="beanMap" type="club.bugmakers.seed.bean.po.user.UserInfoPO">
+	    <result property="id" column="id"/>
+	    <result property="name" column="name"/>
+	    <result property="ename" column="ename"/>
+	    <result property="remark" column="remark"/>
+	    <result property="version" column="version"/>
+	    <result property="createDt" column="create_dt"/>
+	    <result property="createBy" column="create_by"/>
+	    <result property="updateDt" column="update_dt"/>
+	    <result property="updateBy" column="update_by"/>
+	    <result property="isDelete" column="is_delete"/>
+	</resultMap>
+
+    <!--根据主键获取实体-->
+    <select id="get" resultMap="beanMap">
+        SELECT
+        <include refid="columns"/>
+        FROM
+	        user_info a
+        WHERE
+            id = #{id}
+    </select>
+
+    <!-- 新增记录 -->
+    <insert id="add" useGeneratedKeys="true" keyProperty="id" parameterType="club.bugmakers.seed.bean.po.user.UserInfoPO">
+        INSERT INTO user_info
+        (
+	        `name`,
+	        `ename`,
+	        `remark`,
+	        `create_by`,
+	        `update_by`
+        )
+        VALUES
+        (
+			#{name},
+			#{ename},
+			#{remark},
+			#{createBy},
+			#{updateBy}
+        )
+    </insert>
+
+    <!--更新实体信息-->
+    <update id="update" parameterType="club.bugmakers.seed.bean.po.user.UserInfoPO">
+        UPDATE
+	        user_info
+        SET
+           `name` = #{name},
+           `ename` = #{ename},
+           `remark` = #{remark},
+           `create_by` = #{createBy},
+           `update_by` = #{updateBy}
+        WHERE
+            id = #{id}
+    </update>
+
+    <!--更新实体信息，null值字段不更新-->
+    <update id="updateIgnoreNull" parameterType="club.bugmakers.seed.bean.po.user.UserInfoPO">
+        UPDATE user_info
+        <set>
+          <if test="name != null">
+              `name` = #{name},
+          </if>
+          <if test="ename != null">
+              `ename` = #{ename},
+          </if>
+          <if test="remark != null">
+              `remark` = #{remark},
+          </if>
+          <if test="createBy != null">
+              `create_by` = #{createBy},
+          </if>
+          <if test="updateBy != null">
+              `update_by` = #{updateBy},
+          </if>
+        </set>
+        WHERE
+            id = #{id}
+    </update>
+
+    <!--根据主键删除实体-->
+    <delete id="remove">
+        UPDATE user_info SET is_delete = 1, update_by = #{opUser} WHERE  id = #{id}
+    </delete>
+	
+	<!-- 列表查询 -->
+	<select id="list" resultMap="beanMap">
+	  SELECT
+		<include refid="columns"/>
+	  FROM
+		user_info a
+	  ORDER BY id DESC
+	</select>
+</mapper>
